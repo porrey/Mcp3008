@@ -15,45 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with MCP3008 Water Sensor. If not, see http://www.gnu.org/licenses/.
 //
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
+using System;
+using Windows.UI.Xaml.Data;
 
 namespace Porrey.WaterSensor
 {
-	public sealed partial class Gauge : UserControl
+	public sealed class NotBooleanConverter : IValueConverter
 	{
-		public Gauge()
-		{
-			this.InitializeComponent();
-		}
+		public object Convert(object value, Type targetType, object parameter, string language) => 
+			(value is bool && (bool)value) ? false : true;
 
-		public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(double), typeof(Gauge), new PropertyMetadata(0d));
-		
-		public static readonly DependencyProperty DisplayStringProperty = DependencyProperty.Register("DisplayString", typeof(string), typeof(Gauge), new PropertyMetadata("0"));
-
-		public double Value
-		{
-			get
-			{
-				return (double)GetValue(ValueProperty);
-			}
-			set
-			{
-				SetValue(ValueProperty, value);
-			}
-		}
-
-		public string DisplayString
-		{
-			get
-			{
-				return (string)GetValue(DisplayStringProperty);
-			}
-			set
-			{
-				SetValue(DisplayStringProperty, value);
-			}
-		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+			(value is bool && (bool)value) ? false : true;
 	}
 }
-

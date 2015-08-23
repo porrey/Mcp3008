@@ -1,7 +1,25 @@
-﻿using System;
+﻿// Copyright © 2015 Daniel Porrey
+//
+// This file is part of the MCP3008 Water Sensor solution.
+// 
+// MCP3008 Water Sensor is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// MCP3008 Water Sensor is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with MCP3008 Water Sensor. If not, see http://www.gnu.org/licenses/.
+//
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Porrey.WaterSensor.Common;
 using Windows.Devices.Sensors;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -12,14 +30,11 @@ namespace Porrey.WaterSensor
 {
 	public sealed partial class MainPage : Page, INotifyPropertyChanged
 	{
-		private const float MaximumVoltage = 3.301f;
-		private const int MaximumWaterSensorValue = 100;
-		private const int TheoreticalMaximumWaterSensorValue = 56;
-		private const int MaximumGuageValue = 360;
-
 		private DispatcherTimer _timer = new DispatcherTimer();
 		private CoreDispatcher _dispatcher = null;
 		private Mcp3008 _mcp3008 = null;
+		private float _calibratedMaximumWaterSensorValue = MagicValue.Defaults.CalibratedMaximumWaterSensorValue;
+		private ApplicationSettings _applicationSettings = null;
 
 		public MainPage()
 		{
@@ -41,7 +56,7 @@ namespace Porrey.WaterSensor
 			}
 		}
 
-		private string _voltageDisplayValue = "0.00";
+		private string _voltageDisplayValue = MagicValue.Defaults.VoltageDisplay;
 		public string VoltageDisplayValue
 		{
 			get
@@ -56,7 +71,7 @@ namespace Porrey.WaterSensor
 			}
 		}
 
-		private double _voltageValue = 0;
+		private double _voltageValue = MagicValue.Defaults.VoltageValue;
 		public double VoltageValue
 		{
 			get
@@ -70,7 +85,7 @@ namespace Porrey.WaterSensor
 			}
 		}
 
-		private string _waterSensorDisplayValue = "0.00";
+		private string _waterSensorDisplayValue = MagicValue.Defaults.WaterSensorDisplay;
 		public string WaterSensorDisplayValue
 		{
 			get
@@ -85,7 +100,7 @@ namespace Porrey.WaterSensor
 			}
 		}
 
-		private double _waterSensorValue = 0;
+		private double _waterSensorValue = MagicValue.Defaults.WaterSensorValue;
 		public double WaterSensorValue
 		{
 			get
@@ -99,7 +114,32 @@ namespace Porrey.WaterSensor
 			}
 		}
 
-		public string NoValue => string.Empty;
+		private bool _calibrationIsActive = false;
+		public bool CalibrationIsActive
+		{
+			get
+			{
+				return _calibrationIsActive;
+			}
+			set
+			{
+				this._calibrationIsActive = value;
+				this.OnPropertyChanged();
+			}
+		}
+
+		public ApplicationSettings ApplicationSettings
+		{
+			get
+			{
+				if (_applicationSettings == null)
+				{
+					_applicationSettings = new ApplicationSettings();
+				}
+
+				return _applicationSettings;
+			}
+		}
 
 		protected async override void OnNavigatedTo(NavigationEventArgs e)
 		{
@@ -107,6 +147,11 @@ namespace Porrey.WaterSensor
 			// *** Get the current dispatcher for this view
 			// ***
 			_dispatcher = CoreWindow.GetForCurrentThread().Dispatcher;
+
+			// ***
+			// *** Get the calibration value from application settings
+			// ***
+			_calibratedMaximumWaterSensorValue = this.ApplicationSettings.CalibratedMaximumWaterSensorValue;
 
 			// ***
 			// *** Initialize the MCP3008
@@ -140,45 +185,93 @@ namespace Porrey.WaterSensor
 				await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
 				{
 					this.VoltageDisplayValue = value.ToString("0.000v");
-					this.VoltageValue = (int)(value / MaximumVoltage * (float)MaximumGuageValue);
+
+					// ***
+					// *** The gauge wants a value between 0 and 360
+					// ***
+					this.VoltageValue = (int)(value / MagicValue.Defaults.MaximumVoltage * (float)MagicValue.Defaults.MaximumGuageValue);
 				});
 			}
 		}
 
-		private async Task UpdateWaterSensorUI(int value)
+		private async Task UpdateWaterSensorUI(float value)
 		{
 			if (_dispatcher != null)
 			{
 				await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
 				{
-					// ***
-					// *** The water sensor will not give the full voltage 3.3v)
-					// *** when fully wet. So this will adjust it for a theoretical
-					// *** maximum value.
-					// ***
-					int newValue = (int)(((float)value / (float)TheoreticalMaximumWaterSensorValue) * (float)MaximumWaterSensorValue);
+					this.WaterSensorDisplayValue = value.ToString("0%");
 
-					this.WaterSensorDisplayValue = newValue.ToString("0");
-					this.WaterSensorValue = (newValue / 100f) * MaximumGuageValue;
+					// ***
+					// *** The gauge wants a value between 0 and 360
+					// ***
+					this.WaterSensorValue = value * MagicValue.Defaults.MaximumGuageValue;
 				});
 			}
 		}
 
 		private async void Timer_Tick(object sender, object e)
 		{
-			// ***
-			// *** Update the water sensor (scale the value so it is a reading
-			// *** between 0 and 100)
-			// ***
-			int waterSensor = _mcp3008.Read(Mcp3008.Channels.Differential0).AsRange(0, MaximumWaterSensorValue);
-			await this.UpdateWaterSensorUI(waterSensor);
+			if (!this.CalibrationIsActive)
+			{
+				// ***
+				// *** The water sensor will not give the full voltage 3.3v)
+				// *** when fully wet. So this will adjust it for a theoretical
+				// *** maximum value and return an int between 0 and 1.
+				// ***
+				float waterSensor = _mcp3008.Read(Mcp3008.Channels.Single1).NormalizedValue.WithCalibration(_calibratedMaximumWaterSensorValue).AsRange(0f, 1f);
+				await this.UpdateWaterSensorUI(waterSensor);
+			}
 
 			// ***
 			// *** Update the voltage (scale the value so it is a reading
 			// *** between 0 and 3.301v)
 			// ***
-			float voltage = _mcp3008.Read(Mcp3008.Channels.Single0).AsScaledValue(MaximumVoltage);
+			float voltage = _mcp3008.Read(Mcp3008.Channels.Single0).NormalizedValue.AsScaledValue(MagicValue.Defaults.MaximumVoltage);
 			await this.UpdateVoltageUI(voltage);
+		}
+
+		private async void Button_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				// ***
+				// *** Disable the button
+				// ***
+				this.CalibrationIsActive = true;
+
+				// ***
+				// *** Get the next ten readings about 500ms apart
+				// ***
+				float totalValue = 0f;
+
+				for (int i = 0; i < 10; i++)
+				{
+					// ***
+					// *** Read the value and add it to the total
+					// ***
+					totalValue += _mcp3008.Read(Mcp3008.Channels.Single1).NormalizedValue;
+
+					// ***
+					// *** Wait 500 ms
+					// ***
+					await Task.Delay(500);
+				}
+
+				// ***
+				// *** Calculate and set the calibration value
+				// ***
+				_calibratedMaximumWaterSensorValue = totalValue / 10f;
+
+				// ***
+				// *** Save the calibration value to application settings
+				// ***
+				this.ApplicationSettings.CalibratedMaximumWaterSensorValue = _calibratedMaximumWaterSensorValue;
+			}
+			finally
+			{
+				this.CalibrationIsActive = false;
+			}
 		}
 	}
 }

@@ -32,40 +32,6 @@
 		public float NormalizedValue => this.RawValue / 1024f;
 
 		/// <summary>
-		/// Returns the value read from the channel as a scaled against
-		/// the specified maximum value.
-		/// </summary>
-		/// <param name="maximumValue">The largest allowed value.</param>
-		/// <returns>Returns a float value scaled value calculated as a percentage of the 
-		/// maximum value using the normalized value.</returns>
-		public float AsScaledValue(float maximumValue) => this.NormalizedValue * maximumValue;
-
-		/// <summary>
-		/// Returns the value read from the channel as a scaled against
-		/// the specified maximum value.
-		/// </summary>
-		/// <param name="maximumValue">The largest allowed value.</param>
-		/// <returns>Returns an integer value scaled value calculated as a percentage of the 
-		/// maximum value using the normalized value.</returns>
-		public int AsScaledValue(int maximumValue) => (int)(this.NormalizedValue * maximumValue);
-
-		/// <summary>
-		/// Returns the value within the range specified.
-		/// </summary>
-		/// <param name="minimumValue">The lower end of the range and the minimum value returned.</param>
-		/// <param name="maximumValue">The upper end of the range and the maximum value returned.</param>
-		/// <returns>Returns a float value scaled value between the minimum and maximum value.</returns>
-		public float AsRange(float minimumValue, float maximumValue) => (this.NormalizedValue * (maximumValue - minimumValue)) + minimumValue;
-
-		/// <summary>
-		/// Returns the value within the range specified.
-		/// </summary>
-		/// <param name="minimumValue">The lower end of the range and the minimum value returned.</param>
-		/// <param name="maximumValue">The upper end of the range and the maximum value returned.</param>
-		/// <returns>Returns an integer value scaled value between the minimum and maximum value.</returns>
-		public int AsRange(int minimumValue, int maximumValue) => (int)((this.NormalizedValue * ((float)maximumValue - (float)minimumValue)) + (float)minimumValue);
-
-		/// <summary>
 		/// Implicitly converts the value read from the channel to
 		/// a normalized float value.
 		/// </summary>

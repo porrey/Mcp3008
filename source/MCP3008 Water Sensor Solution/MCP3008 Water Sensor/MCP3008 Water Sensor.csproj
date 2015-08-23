@@ -96,6 +96,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\ApplicationSettings.cs" />
+    <Compile Include="Common\BindableBase.cs" />
+    <Compile Include="Common\MagicValues.cs" />
+    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Converters\NotBooleanConverter.cs" />
+    <Compile Include="Converters\NotBooleanToVisibilityConverter.cs" />
     <Compile Include="Gauge.xaml.cs">
       <DependentUpon>Gauge.xaml</DependentUpon>
     </Compile>

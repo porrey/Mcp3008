@@ -14,8 +14,9 @@
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="100" />
+            <RowDefinition Height="200" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="200" />
         </Grid.RowDefinitions>
 
         <!-- Water Sensor Header -->
@@ -35,7 +36,6 @@
                          Width="500"
                          Value="{x:Bind WaterSensorValue,Mode=OneWay}"
                          DisplayString="{x:Bind WaterSensorDisplayValue, Mode=OneWay}" />
-
 
             <TextBlock Text="Dry"
                        Opacity=".8"
@@ -163,5 +163,28 @@
                 </TextBlock.RenderTransform>
             </TextBlock>
         </Grid>
+
+        <!-- Calibration -->
+        <StackPanel Grid.Column="0"
+                    Grid.Row="2"
+                    Orientation="Vertical">
+            <TextBlock Text="To calibrate the water sensor, place the entire sensor in water and press the calibrate button. The application will take an average of 10 readings from the sensor to determine the maximum reading. Keep the sensor in the water until calibration is complete (about 5 seconds)."
+                       FontSize="18"
+                       TextWrapping="WrapWholeWords"
+					   Foreground="AntiqueWhite"
+                       Margin="25,5,25,5" />
+            <Button Content="Calibrate"
+                    Margin="10,10,10,10"
+                    HorizontalAlignment="Center"
+                    Click="Button_Click"
+					Foreground="Black"
+                    IsEnabled="{x:Bind CalibrationIsActive, Converter={StaticResource NotBooleanConverter}, Mode=OneWay}" />
+            <TextBlock Text="Calibrating..."
+                       FontSize="38"
+                       HorizontalAlignment="Center"
+                       Margin="0,5,0,0"
+					   Foreground="Black"
+                       Visibility="{x:Bind CalibrationIsActive, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" />
+        </StackPanel>
     </Grid>
 </Page>
