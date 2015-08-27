@@ -135,7 +135,8 @@ namespace Porrey.WaterSensor
 				if (_applicationSettings == null)
 				{
 					_applicationSettings = new ApplicationSettings();
-				}
+					_applicationSettings.ResetToDefaults();
+                }
 
 				return _applicationSettings;
 			}
@@ -205,7 +206,7 @@ namespace Porrey.WaterSensor
 					// ***
 					// *** The gauge wants a value between 0 and 360
 					// ***
-					this.WaterSensorValue = value * MagicValue.Defaults.MaximumGuageValue;
+					this.WaterSensorValue = value.AsRange(0, MagicValue.Defaults.MaximumGuageValue);
 				});
 			}
 		}

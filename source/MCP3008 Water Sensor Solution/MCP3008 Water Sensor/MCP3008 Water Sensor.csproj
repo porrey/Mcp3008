@@ -117,7 +117,6 @@
     <None Include="MCP3008 Water Sensor_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\gauge-radial-ranges.png" />
     <Content Include="Assets\metal-texture.jpg" />
     <Content Include="Assets\RadialScaleCustomTickMarks.png" />
     <Content Include="Assets\Face.png" />
