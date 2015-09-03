@@ -1,0 +1,19 @@
+﻿<Application x:Class="Porrey.WaterSensor.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Porrey.WaterSensor"
+             xmlns:common="using:Porrey.Common"
+             RequestedTheme="Dark">
+    <Application.Resources>
+        <ResourceDictionary>
+            <x:String x:Key="AppName">Water Sensor</x:String>
+			
+            <!-- ***            -->
+            <!-- *** Converters -->
+            <!-- ***            -->            
+            <common:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></common:BooleanToVisibilityConverter>
+            <common:NotBooleanToVisibilityConverter x:Key="NotBooleanToVisibilityConverter"></common:NotBooleanToVisibilityConverter>
+            <common:NotBooleanConverter x:Key="NotBooleanConverter"></common:NotBooleanConverter>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

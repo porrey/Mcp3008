@@ -1,0 +1,109 @@
+﻿<common:BindablePage x:Class="Porrey.WaterLevel.Views.MainPage"
+                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:local="using:Porrey.WaterLevel.Views"
+                     xmlns:common="using:Porrey.Common"
+                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                     mc:Ignorable="d"
+                     RequestedTheme="Dark">
+
+    <Grid Background="DarkKhaki">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="200" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Water Level Header -->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   Text="Water Level"
+                   FontSize="64"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Opacity=".7"
+                   Foreground="Black" />
+
+        <!-- Water Level Meter -->
+        <Grid Grid.Row="1"
+              Grid.Column="0">
+            <common:Gauge Height="500"
+                          Width="500"
+                          Value="{x:Bind WaterLevelValue,Mode=OneWay}"
+                          DisplayString="{x:Bind WaterLevelDisplayValue, Mode=OneWay}" />
+
+            <TextBlock Text="0 in"
+                       Opacity=".8"
+                       FontSize="24"
+                       Foreground="AntiqueWhite"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center">
+                <TextBlock.RenderTransform>
+                    <CompositeTransform TranslateX="0"
+                                        TranslateY="-190" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+
+            <TextBlock Text="3 in"
+                       Opacity=".8"
+                       FontSize="24"
+                       Foreground="AntiqueWhite"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       RenderTransformOrigin="1.0,0.5">
+                <TextBlock.RenderTransform>
+                    <CompositeTransform Rotation="90"
+                                        TranslateX="160"
+                                        TranslateY="30" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+
+            <TextBlock Text="6 in"
+                       Opacity=".8"
+                       FontSize="24"
+                       Foreground="AntiqueWhite"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center">
+                <TextBlock.RenderTransform>
+                    <CompositeTransform Rotation="0"
+                                        TranslateX="0"
+                                        TranslateY="185" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+
+            <TextBlock Text="9 in"
+                       Opacity=".8"
+                       FontSize="24"
+                       Foreground="AntiqueWhite"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       RenderTransformOrigin="1.0,0.5">
+                <TextBlock.RenderTransform>
+                    <CompositeTransform Rotation="270"
+                                        TranslateX="-225"
+                                        TranslateY="-35" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+        </Grid>
+
+        <!-- Calibration -->
+        <StackPanel Grid.Column="0"
+                    Grid.Row="2"
+                    Orientation="Vertical" />
+    </Grid>
+    <Page.BottomAppBar>
+        <CommandBar Background="Transparent"
+                    IsOpen="False">
+
+            <AppBarButton x:Uid="calibrateAppBarButton"
+                          x:Name="calibrateAppBarButton"
+                          Label="Calibrate"
+                          Margin="10,0,10,0"
+                          Icon="Directions"
+                          Click="calibrateAppBarButton_Click">
+            </AppBarButton>
+
+            <CommandBar.SecondaryCommands></CommandBar.SecondaryCommands>
+        </CommandBar>
+    </Page.BottomAppBar>
+</common:BindablePage>

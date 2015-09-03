@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Mcp3008")]
+[assembly: AssemblyTitle("Windows.Devices.Sensors.SensorStability")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Daniel Porrey")]
-[assembly: AssemblyProduct("Mcp3008")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Windows.Devices.Sensors.SensorStability")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
