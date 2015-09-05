@@ -17,10 +17,11 @@ namespace Porrey.WaterLevel.Views
 		private DispatcherTimer _timer = null;
 		private Mcp3008 _mcp3008 = null;
 		private MyApplicationSettings _applicationSettings = null;
-		private NonLinearCalibration _calibration = null;
-		private CalibrationPoint[] _calibrationPoints = new CalibrationPoint[3];
+		private CalibrationPoint[] _calibrationPoints = null;
 		private int _calibrationIndex = 0;
-		private readonly StabilityMeter _stabilityMeter = new StabilityMeter(.35d, .57d);
+		private readonly StabilityMonitor _stabilityMeter = new StabilityMonitor();
+
+		private WizardStep[] _steps = null;
 
 		public CalibratePage()
 		{
@@ -31,27 +32,40 @@ namespace Porrey.WaterLevel.Views
 			_timer.Tick += Timer_Tick;
 		}
 
-		public MyApplicationSettings ApplicationSettings
-		{
-			get
-			{
-				if (_applicationSettings == null)
-				{
-					_applicationSettings = new MyApplicationSettings();
-				}
-
-				return _applicationSettings;
-			}
-		}
-
 		protected async override void OnNavigatedTo(NavigationEventArgs e)
 		{
 			base.OnNavigatedTo(e);
 
 			// ***
-			// *** Get the calibration value from application settings
 			// ***
-			_calibration = new NonLinearCalibration(MagicValue.Defaults.MinimumDepth, MagicValue.Defaults.MaximumDepth, this.ApplicationSettings.CalibrationPoints);
+			// ***
+			_steps = new WizardStep[]
+			{
+				new WizardStep() { Instruction = "This wizard will walk you through the calibration steps. Follow the instructions carefully. Click Start to begin. You can press Cancel at any time.",
+								   ButtonText = "Start",
+								   StepAction = ()=> { } },
+
+				new WizardStep() { Instruction = "Place the sensor in the water so that the water level is at 4 inches. Wait for the reading to stabilize and then click Next.",
+								   ButtonText = "Next",
+								   StepAction = async ()=> { await this.CaptureCalibrationPoint(4, this.SensorReading); this.OnPropertyChanged(nameof(CalibratrionPoint4)); } },
+
+				new WizardStep() { Instruction = "Place the sensor in the water so that the water level is at 8 inches. Wait for the reading to stabilize and then click Next.",
+								   ButtonText = "Next",
+								   StepAction = async ()=> { await this.CaptureCalibrationPoint(8, this.SensorReading); this.OnPropertyChanged(nameof(CalibratrionPoint8)); } },
+
+				new WizardStep() { Instruction = "Place the sensor in the water so that the water level is at 12 inches. Wait for the reading to stabilize and then click Next.",
+								   ButtonText = "Next",
+								   StepAction = async ()=> { await this.CaptureCalibrationPoint(12, this.SensorReading); this.OnPropertyChanged(nameof(CalibratrionPoint12)); } },
+
+				new WizardStep() { Instruction = "Your sensor is now calibrated. Click Done to return the sensor reading.",
+								   ButtonText = "Done",
+								   StepAction = async ()=> { await this.SaveCalibrationPoints(); this.Return(); } }
+			};
+
+			// ***
+			// *** Get the current calibration points
+			// ***
+			_calibrationPoints = this.ApplicationSettings.CalibrationPoints;
 
 			// ***
 			// *** Initialize the MCP3008
@@ -59,9 +73,15 @@ namespace Porrey.WaterLevel.Views
 			_mcp3008 = new Mcp3008(0);
 			await _mcp3008.Initialize();
 
+			// ***
 			// *** Start the timer
 			// ***
 			_timer.Start();
+
+			// ***
+			// *** Start the wizard
+			// ***
+			await Start();
 		}
 
 		protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -83,16 +103,211 @@ namespace Porrey.WaterLevel.Views
 			base.OnNavigatedFrom(e);
 		}
 
-		private bool _okEnabled = false;
-		public bool OkEnabled
+		#region Private Members
+		private MyApplicationSettings ApplicationSettings
 		{
 			get
 			{
-				return _okEnabled;
+				if (_applicationSettings == null)
+				{
+					_applicationSettings = new MyApplicationSettings();
+				}
+
+				return _applicationSettings;
+			}
+		}
+
+		private CalibrationPoint[] CalibrationPoints
+		{
+			get
+			{
+				return _calibrationPoints;
 			}
 			set
 			{
-				this.SetProperty(ref _okEnabled, value);
+				this._calibrationPoints = value;
+			}
+		}
+
+		private void Return()
+		{
+			Frame rootFrame = Window.Current.Content as Frame;
+			rootFrame.Navigate(typeof(MainPage), null);
+			Window.Current.Activate();
+		}
+
+		private Task CaptureCalibrationPoint(int inches, float adjustedSensorReading)
+		{
+			// ***
+			// *** Read the value from the sensor
+			// ***
+			this.CalibrationPoints[_calibrationIndex].X = adjustedSensorReading;
+			this.CalibrationPoints[_calibrationIndex].Y = inches;
+
+			// ***
+			// *** Increment the counter
+			// ***
+			_calibrationIndex++;
+
+			return Task.FromResult(0);
+		}
+
+		private Task SaveCalibrationPoints()
+		{
+			this.ApplicationSettings.CalibrationPoints = _calibrationPoints;
+
+			return Task.FromResult(0);
+		}
+
+		private async Task ReadSensor()
+		{
+			if (_mcp3008 != null)
+			{
+				// ***
+				// *** The reference voltage is measured from the reference resistor
+				// *** on the sensor to help compensate for temperature changes. This
+				// *** value is used to adjust the reading.
+				// ***
+				Mcp3008Reading xRef = _mcp3008.Read(Mcp3008.Channels.Single1);
+
+				// ***
+				// *** Get the normalized sensor reading
+				// ***
+				Mcp3008Reading x = _mcp3008.Read(Mcp3008.Channels.Single0);
+
+				// ***
+				// *** Adjust the sensor reading
+				// ***
+				float adjustedX = x.NormalizedValue / xRef.NormalizedValue;
+
+				// ***
+				// *** Update the stability meter
+				// ***
+				await _stabilityMeter.AddReading(adjustedX);
+
+				// ***
+				// *** Update the UI
+				// ***
+				await this.UpdateUI(xRef, x, adjustedX);
+			}
+		}
+
+		private async Task UpdateUI(Mcp3008Reading reference, Mcp3008Reading reading, float adjustedReading)
+		{
+			if (this.Dispatcher != null)
+			{
+				await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+				{
+					// ***
+					// *** Update the sensor reading
+					// ***
+					this.SensorReading = adjustedReading;
+
+					// ***
+					// *** Update the dashboard values
+					// ***
+					this.RawSensorDisplayValue = reading.RawValue.ToString();
+					this.RawReferenceDisplayValue = reference.RawValue.ToString();
+					this.NormalizedSensorReadingDisplayValue = reading.NormalizedValue.ToString("0.000");
+					this.AdjustedSensorReadingDisplayValue = adjustedReading.ToString("0.000");
+					this.StabilityDisplayValue = string.Format("{0:0.000}", _stabilityMeter.Stability);
+				});
+			}
+		}
+
+		private float _sensorReading = 0f;
+		private float SensorReading
+		{
+			get
+			{
+				return _sensorReading;
+			}
+			set
+			{
+				this.SetProperty(ref _sensorReading, value);
+				this.OnPropertyChanged(nameof(SensorReadingDisplayValue));
+			}
+		}
+
+		private Task Start()
+		{
+			this.StepNumber = 1;
+			return Task.FromResult(0);
+		}
+
+		private Task NextStep()
+		{
+			// ***
+			// *** Execute the previous step action
+			// ***
+			_steps[this.StepNumber - 1].StepAction();
+
+			if (this.StepNumber < this.TotalSteps)
+			{
+				// ***
+				// *** Go to the next step
+				// ***
+				this.StepNumber++;
+			}
+
+			return Task.FromResult(0);
+		}
+		#endregion
+
+		#region Events
+		private async void Timer_Tick(object sender, object e)
+		{
+			await ReadSensor();
+		}
+
+		private void Cancel_Click(object sender, RoutedEventArgs e)
+		{
+			this.Return();
+		}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			this.NextStep();
+		}
+		#endregion
+
+		#region Bindings
+		private int _stepNumber = 1;
+		public int StepNumber
+		{
+			get
+			{
+				return _stepNumber;
+			}
+			set
+			{
+				this.SetProperty(ref _stepNumber, value);
+				this.OnPropertyChanged(nameof(CurrentInstruction));
+				this.OnPropertyChanged(nameof(ButtonText));
+			}
+		}
+
+		public int TotalSteps
+		{
+			get
+			{
+				return _steps.Length;
+			}
+		}
+
+		public string CurrentInstruction
+		{
+			get
+			{
+				return _steps[this.StepNumber - 1].Instruction;
+			}
+		}
+
+		public string ButtonText
+		{
+			get
+			{
+				return _steps[this.StepNumber - 1].ButtonText;
 			}
 		}
 
@@ -109,362 +324,6 @@ namespace Porrey.WaterLevel.Views
 			}
 		}
 
-		private bool _startEnabled = true;
-		public bool StartEnabled
-		{
-			get
-			{
-				return _startEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _startEnabled, value);
-			}
-		}
-
-		private bool _zeroEnabled = false;
-		public bool ZeroEnabled
-		{
-			get
-			{
-				return _zeroEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _zeroEnabled, value);
-			}
-		}
-
-		private bool _oneEnabled = false;
-		public bool OneEnabled
-		{
-			get
-			{
-				return _oneEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _oneEnabled, value);
-			}
-		}
-
-		private bool _twoEnabled = false;
-		public bool TwoEnabled
-		{
-			get
-			{
-				return _twoEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _twoEnabled, value);
-			}
-		}
-
-		private bool _threeEnabled = false;
-		public bool ThreeEnabled
-		{
-			get
-			{
-				return _threeEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _threeEnabled, value);
-			}
-		}
-
-		private bool _fourEnabled = false;
-		public bool FourEnabled
-		{
-			get
-			{
-				return _fourEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _fourEnabled, value);
-			}
-		}
-
-		private bool _fiveeEnabled = false;
-		public bool FiveEnabled
-		{
-			get
-			{
-				return _fiveeEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _fiveeEnabled, value);
-			}
-		}
-
-		private bool _sixEnabled = false;
-		public bool SixEnabled
-		{
-			get
-			{
-				return _sixEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _sixEnabled, value);
-			}
-		}
-
-		private bool _sevenEnabled = false;
-		public bool SevenEnabled
-		{
-			get
-			{
-				return _sevenEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _sevenEnabled, value);
-			}
-		}
-
-		private bool _eightEnabled = false;
-		public bool EightEnabled
-		{
-			get
-			{
-				return _eightEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _eightEnabled, value);
-			}
-		}
-
-		private bool _nineEnabled = false;
-		public bool NineEnabled
-		{
-			get
-			{
-				return _nineEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _nineEnabled, value);
-			}
-		}
-
-		private bool _tenEnabled = false;
-		public bool TenEnabled
-		{
-			get
-			{
-				return _tenEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _tenEnabled, value);
-			}
-		}
-
-		private bool _elevenEnabled = false;
-		public bool ElevenEnabled
-		{
-			get
-			{
-				return _elevenEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _elevenEnabled, value);
-			}
-		}
-
-		private bool _twelveEnabled = false;
-		public bool TwelveEnabled
-		{
-			get
-			{
-				return _twelveEnabled;
-			}
-			set
-			{
-				this.SetProperty(ref _twelveEnabled, value);
-			}
-		}
-
-		public CalibrationPoint[] CalibrationPoints
-		{
-			get
-			{
-				return _calibrationPoints;
-			}
-
-			set
-			{
-				this._calibrationPoints = value;
-			}
-		}
-
-		private void Ok_Click(object sender, RoutedEventArgs e)
-		{
-			this.SaveCalibrationPoints();
-			this.Return();
-		}
-
-		private void Cancel_Click(object sender, RoutedEventArgs e)
-		{
-			this.Return();
-		}
-
-		private void Start_Click(object sender, RoutedEventArgs e)
-		{
-			// ***
-			// *** Enable all of the buttons
-			// ***
-			this.ZeroEnabled = true;
-			this.OneEnabled = true;
-			this.TwoEnabled = true;
-			this.ThreeEnabled = true;
-			this.FourEnabled = true;
-			this.FiveEnabled = true;
-			this.SixEnabled = true;
-			this.SevenEnabled = true;
-			this.EightEnabled = true;
-			this.NineEnabled = true;
-			this.TenEnabled = true;
-			this.ElevenEnabled = true;
-			this.TwelveEnabled = true;
-		}
-
-		private async void Zero_Click(object sender, RoutedEventArgs e)
-		{
-			this.ZeroEnabled = false;
-			await this.GetCalibrationPoint(0);
-		}
-
-		private async void One_Click(object sender, RoutedEventArgs e)
-		{
-			this.OneEnabled = false;
-			await this.GetCalibrationPoint(1);
-		}
-
-		private async void Two_Click(object sender, RoutedEventArgs e)
-		{
-			this.TwoEnabled = false;
-			await this.GetCalibrationPoint(2);
-		}
-
-		private async void Three_Click(object sender, RoutedEventArgs e)
-		{
-			this.ThreeEnabled = false;
-			await this.GetCalibrationPoint(3);
-		}
-
-		private async void Four_Click(object sender, RoutedEventArgs e)
-		{
-			this.FourEnabled = false;
-			await this.GetCalibrationPoint(4);
-		}
-
-		private async void Five_Click(object sender, RoutedEventArgs e)
-		{
-			this.FiveEnabled = false;
-			await this.GetCalibrationPoint(5);
-		}
-
-		private async void Six_Click(object sender, RoutedEventArgs e)
-		{
-			this.SixEnabled = false;
-			await this.GetCalibrationPoint(6);
-		}
-
-		private async void Seven_Click(object sender, RoutedEventArgs e)
-		{
-			this.SevenEnabled = false;
-			await this.GetCalibrationPoint(7);
-		}
-
-		private async void Eight_Click(object sender, RoutedEventArgs e)
-		{
-			this.EightEnabled = false;
-			await this.GetCalibrationPoint(8);
-		}
-
-		private async void Nine_Click(object sender, RoutedEventArgs e)
-		{
-			this.NineEnabled = false;
-			await this.GetCalibrationPoint(9);
-		}
-
-		private async void Ten_Click(object sender, RoutedEventArgs e)
-		{
-			this.TenEnabled = false;
-			await this.GetCalibrationPoint(10);
-		}
-
-		private async void Eleven_Click(object sender, RoutedEventArgs e)
-		{
-			this.ElevenEnabled = false;
-			await this.GetCalibrationPoint(11);
-		}
-
-		private async void Twelve_Click(object sender, RoutedEventArgs e)
-		{
-			this.TwelveEnabled = false;
-			await this.GetCalibrationPoint(12);
-		}
-
-		private void Return()
-		{
-			Frame rootFrame = Window.Current.Content as Frame;
-			rootFrame.Navigate(typeof(MainPage), null);
-			Window.Current.Activate();
-		}
-
-		private Task GetCalibrationPoint(int index)
-		{
-			// ***
-			// *** Read the value from the sensor
-			// ***
-			this.CalibrationPoints[_calibrationIndex].Y = _mcp3008.Read(Mcp3008.Channels.Single0).NormalizedValue;
-			this.CalibrationPoints[_calibrationIndex].X = index;
-
-			// ***
-			// *** Increment the counter
-			// ***
-			_calibrationIndex++;
-
-			if (_calibrationIndex == 3)
-			{
-				// ***
-				// *** Update the OK button
-				// ***
-				this.OkEnabled = true;
-			}
-
-			return Task.FromResult(0);
-		}
-
-		private Task SaveCalibrationPoints()
-		{
-			this.ApplicationSettings.CalibrationPoints = _calibrationPoints;
-
-			return Task.FromResult(0);
-		}
-
-		private float _sensorReading = 0f;
-		public float SensorReading
-		{
-			get
-			{
-				return _sensorReading;
-			}
-			set
-			{
-				this.SetProperty(ref _sensorReading, value);
-				this.OnPropertyChanged(nameof(SensorReadingDisplayValue));
-			}
-		}
-
 		public string SensorReadingDisplayValue
 		{
 			get
@@ -473,93 +332,101 @@ namespace Porrey.WaterLevel.Views
 			}
 		}
 
-		private async void Timer_Tick(object sender, object e)
-		{
-			if (_mcp3008 != null)
-			{
-				// ***
-				// *** Update the voltage (scale the value so it is a reading
-				// *** between 0 and 3.301v)
-				// ***
-				float x = _mcp3008.Read(Mcp3008.Channels.Single0).NormalizedValue;
-
-				// ***
-				// *** Update the stability meter
-				// ***
-				await _stabilityMeter.AddReading(x);
-
-				if (this.Dispatcher != null)
-				{
-					await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-					{
-						// ***
-						// *** Update the display
-						// ***
-						this.SensorReading = x;
-
-						// ***
-						// *** Update the stability meter
-						// ***
-						if (_stabilityMeter.Stability < .85)
-						{
-							this.Ready = Visibility.Collapsed;
-							this.Stabilizing = Visibility.Collapsed;
-							this.NotReady = Visibility.Visible;
-						}
-						else if (_stabilityMeter.Stability <= .95)
-						{
-							this.Ready = Visibility.Collapsed;
-							this.Stabilizing = Visibility.Visible;
-							this.NotReady = Visibility.Collapsed;
-						}
-						else
-						{
-							this.Ready = Visibility.Visible;
-							this.Stabilizing = Visibility.Collapsed;
-							this.NotReady = Visibility.Collapsed;
-						}
-					});
-				}
-			}
-		}
-
-		private Visibility _notReady = Visibility.Collapsed;
-		public Visibility NotReady
+		private string _rawSensorDisplayValue = string.Empty;
+		public string RawSensorDisplayValue
 		{
 			get
 			{
-				return _notReady;
+				return _rawSensorDisplayValue;
 			}
 			set
 			{
-				this.SetProperty(ref _notReady, value);
+				this.SetProperty(ref _rawSensorDisplayValue, value);
 			}
 		}
 
-		private Visibility _stabilizing = Visibility.Collapsed;
-		public Visibility Stabilizing
+		private string _rawReferenceDisplayValue = string.Empty;
+		public string RawReferenceDisplayValue
 		{
 			get
 			{
-				return _stabilizing;
+				return _rawReferenceDisplayValue;
 			}
 			set
 			{
-				this.SetProperty(ref _stabilizing, value);
+				this.SetProperty(ref _rawReferenceDisplayValue, value);
 			}
 		}
 
-		private Visibility _ready = Visibility.Visible;
-		public Visibility Ready
+		private string _normalizedSensorReadingDisplayValue = string.Empty;
+		public string NormalizedSensorReadingDisplayValue
 		{
 			get
 			{
-				return _ready;
+				return _normalizedSensorReadingDisplayValue;
 			}
 			set
 			{
-				this.SetProperty(ref _ready, value);
+				this.SetProperty(ref _normalizedSensorReadingDisplayValue, value);
 			}
 		}
+
+		private string _adjustedSensorReadingDisplayValue = string.Empty;
+		public string AdjustedSensorReadingDisplayValue
+		{
+			get
+			{
+				return _adjustedSensorReadingDisplayValue;
+			}
+			set
+			{
+				this.SetProperty(ref _adjustedSensorReadingDisplayValue, value);
+			}
+		}
+
+		private string _stabilityDisplayValue = string.Empty;
+		public string StabilityDisplayValue
+		{
+			get
+			{
+				return _stabilityDisplayValue;
+			}
+			set
+			{
+				this.SetProperty(ref _stabilityDisplayValue, value);
+			}
+		}
+
+		public string CalibratrionPoint4
+		{
+			get
+			{
+				return this.CalibrationPoints[0].X.ToString("0.000");
+			}
+		}
+
+		public string CalibratrionPoint8
+		{
+			get
+			{
+				return this.CalibrationPoints[1].X.ToString("0.000");
+			}
+		}
+
+		public string CalibratrionPoint12
+		{
+			get
+			{
+				return this.CalibrationPoints[2].X.ToString("0.000");
+			}
+		}
+		#endregion
+	}
+
+	internal class WizardStep
+	{
+		public string Instruction { get; set; }
+		public string ButtonText { get; set; }
+		public Action StepAction { get; set; }
 	}
 }

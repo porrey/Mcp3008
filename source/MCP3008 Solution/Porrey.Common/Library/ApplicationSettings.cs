@@ -32,7 +32,7 @@ namespace Porrey.Common
 				// ***
 				// *** Not all objects will serialize, so use Newtonsoft.Json
 				// ***
-				string json = (string)ApplicationData.Current.LocalSettings.Values[name];
+				string json = (string)ApplicationData.Current.RoamingSettings.Values[name];
 				returnValue = JsonConvert.DeserializeObject<T>(json);
 			}
 			else
@@ -49,7 +49,7 @@ namespace Porrey.Common
 			// *** Not all objects will serialize so use Newtonsoft.Json for everything
 			// ***
 			string json = JsonConvert.SerializeObject(value);
-			ApplicationData.Current.LocalSettings.Values[name] = json;
+			ApplicationData.Current.RoamingSettings.Values[name] = json;
 			this.OnPropertyChanged(name);
 		}
 

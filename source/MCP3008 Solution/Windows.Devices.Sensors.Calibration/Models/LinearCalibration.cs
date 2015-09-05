@@ -20,37 +20,32 @@ using System;
 namespace Windows.Devices.Sensors.Calibration
 {
 	/// <summary>
-	/// Allows calibration of a device using a 2nd Order Polynomial
-	/// in the form y = ax² + bx + c.
+	/// Allows calibration of a device using a linear equation
+	/// in the form y = mx + b.
 	/// </summary>
-	public class NonLinearCalibration : Calibration
+	public class LinearCalibration : Calibration
 	{
 		/// <summary>
 		/// The number of calibration points required by this calibration method.
 		/// </summary>
-		private const int _calibrationPointCount = 3;
+		private const int _calibrationPointCount = 2;
 
 		/// <summary>
-		/// Represents the value a in the formula y = ax² + bx + c
+		/// Represents the value m in the formula y = mx + b
 		/// </summary>
-		private float _a = 0f;
+		private float _m = 0f;
 
 		/// <summary>
-		/// Represents the value b in the formula y = ax² + bx + c
+		/// Represents the value b in the formula y = mx + b
 		/// </summary>
 		private float _b = 0f;
-
-		/// <summary>
-		/// Represents the value c in the formula y = ax² + bx + c
-		/// </summary>
-		private float _c = 0f;
 
 		/// <summary>
 		/// Creates an instance of Windows.Devices.Sensors.NonLinearCalibration
 		/// with the specified point count and maximum reading value.
 		/// </summary>
 		/// <param name="maximum">The maximum adjusted reading value allowed.</param>
-		public NonLinearCalibration(float maximum) 
+		public LinearCalibration(float maximum)
 			: base(_calibrationPointCount, maximum)
 		{
 		}
@@ -62,7 +57,7 @@ namespace Windows.Devices.Sensors.Calibration
 		/// </summary>
 		/// <param name="minimum">The minimum adjusted reading value allowed.</param>
 		/// <param name="maximum">The maximum adjusted reading value allowed.</param>
-		public NonLinearCalibration(float minimum, float maximum) 
+		public LinearCalibration(float minimum, float maximum)
 			: base(_calibrationPointCount, minimum, maximum)
 		{
 		}
@@ -74,9 +69,9 @@ namespace Windows.Devices.Sensors.Calibration
 		/// </summary>
 		/// <param name="maximum">The maximum adjusted reading value allowed.</param>
 		/// <param name="calibrationPoints">The calibrations points used to adjust the reading.</param>
-		public NonLinearCalibration(float maximum, CalibrationPoint[] calibrationPoints)
+		public LinearCalibration(float maximum, CalibrationPoint[] calibrationPoints)
 			: base(_calibrationPointCount, maximum, calibrationPoints)
-        {
+		{
 		}
 
 		/// <summary>
@@ -87,25 +82,25 @@ namespace Windows.Devices.Sensors.Calibration
 		/// <param name="minimum">The minimum adjusted reading value allowed.</param>
 		/// <param name="maximum">The maximum adjusted reading value allowed.</param>
 		/// <param name="calibrationPoints">The calibrations points used to adjust the reading.</param>
-		public NonLinearCalibration(float minimum, float maximum, CalibrationPoint[] calibrationPoints)
+		public LinearCalibration(float minimum, float maximum, CalibrationPoint[] calibrationPoints)
 			: base(_calibrationPointCount, minimum, maximum, calibrationPoints)
 		{
 		}
 
 		protected override float OnAdjustedReading(float x)
 		{
-			return (x * x * _a) + (_b * x) + _c;
+			return (_m * x) + _b;
 		}
 
 		protected override void OnCalibrationPointsChanged(CalibrationPoint[] calibrationPoints)
 		{
-			this.CalculateFormulaVariables(calibrationPoints, out _a, out _b, out _c);
+			this.CalculateFormulaVariables(calibrationPoints, out _m, out _b);
 		}
 
 		/// <summary>
-		/// Calculates the values a, b and c in the formula y = ax² + bx + c
+		/// Calculates the values a, b and c in the formula y = mx + b
 		/// </summary>
-		public virtual void CalculateFormulaVariables(CalibrationPoint[] calibrationPoints, out float a, out float b, out float c)
+		public virtual void CalculateFormulaVariables(CalibrationPoint[] calibrationPoints, out float m, out float b)
 		{
 			if (calibrationPoints.Length == this.CalibrationPointCount)
 			{
@@ -115,16 +110,16 @@ namespace Windows.Devices.Sensors.Calibration
 				// ***
 				float x1 = calibrationPoints[0].X;
 				float x2 = calibrationPoints[1].X;
-				float x3 = calibrationPoints[2].X;
 
 				float y1 = calibrationPoints[0].Y;
 				float y2 = calibrationPoints[1].Y;
-				float y3 = calibrationPoints[2].Y;
 
-				float denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
-				a = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
-				b = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom;
-				c = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
+				m = (y2 - y1) / (x2 - x1);
+
+				float b1 = m * x1;
+				float b2 = m * x2;
+
+				b = (b1 + b2) / 2;
 			}
 			else if (calibrationPoints.Length < this.CalibrationPointCount)
 			{
@@ -142,14 +137,6 @@ namespace Windows.Devices.Sensors.Calibration
 				// ***
 				throw new ArgumentOutOfRangeException(string.Format("There are too many points defined. {0} must be an array of three points.", nameof(calibrationPoints)));
 			}
-		}
-
-		public void Calc(float x1, float y1, float x2, float y2, float x3, float y3)
-		{
-			float denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
-			float A = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
-			float B = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom;
-			float C = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
 		}
 	}
 }

@@ -9,9 +9,16 @@
                      RequestedTheme="Dark">
 
     <Page.Resources>
-        <x:Double x:Key="Diameter">75</x:Double>
-        <x:Double x:Key="NumberFontSize">55</x:Double>
-        <x:Double x:Key="InstructionsFontSize">34</x:Double>
+        <x:Double x:Key="Diameter">135</x:Double>
+        <x:Double x:Key="OfFontSize">65</x:Double>
+        <x:Double x:Key="NumberFontSize">75</x:Double>
+        <GridLength x:Key="StepsColumnWidth">150</GridLength>
+        <x:Double x:Key="InstructionsFontSize">54</x:Double>
+        <x:Double x:Key="ButtonFontSize">64</x:Double>
+        <GridLength x:Key="ButtonColumnWidth">250</GridLength>
+        <x:Double x:Key="DashboardFontSize">35</x:Double>
+        <Thickness x:Key="BorderThickness">2</Thickness>
+        <Thickness x:Key="BorderMargin">3,3,3,3</Thickness>
     </Page.Resources>
 
     <Grid Background="DarkKhaki">
@@ -20,7 +27,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Calibration Header -->
+        <!-- Page Header -->
         <TextBlock Grid.Row="0"
                    Grid.Column="0"
                    Text="Calibration"
@@ -34,209 +41,314 @@
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="1*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="2*" />
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="{StaticResource ButtonColumnWidth}" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="{StaticResource ButtonColumnWidth}" />
             </Grid.ColumnDefinitions>
 
-            <!-- Step 1 -->
-            <Grid Grid.Row="0"
-                  Grid.Column="0">
-                <Ellipse Fill="Black"
-                         Width="{StaticResource Diameter}"
-                         Height="{StaticResource Diameter}"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center">
-                </Ellipse>
-                <TextBlock Text="1"
-                           Margin="0,0,0,10"
-                           FontSize="{StaticResource NumberFontSize}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
-            </Grid>
+            <!-- Step Display -->
             <Grid Grid.Row="0"
                   Grid.Column="1"
-                  Margin="10,10,10,10">
+                  HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="5*" />
-                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="{StaticResource StepsColumnWidth}" />
+                    <ColumnDefinition Width="{StaticResource StepsColumnWidth}" />
+                    <ColumnDefinition Width="{StaticResource StepsColumnWidth}" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           TextWrapping="WrapWholeWords"
-						   VerticalAlignment="Center"
-                           Text="Rest the sensor in the water source and then click Start to begin the calibration process."
-                           FontSize="{StaticResource InstructionsFontSize}" />
 
-                <!-- Start Button -->
-                <Button Grid.Column="1"
-                        FontSize="28"
-                        HorizontalAlignment="Center"
+                <!-- Step Number -->
+                <Grid Grid.Row="0"
+                      Grid.Column="0">
+                    <Ellipse Fill="Black"
+                             Width="{StaticResource Diameter}"
+                             Height="{StaticResource Diameter}"
+                             VerticalAlignment="Center"
+                             HorizontalAlignment="Center">
+                    </Ellipse>
+                    <TextBlock Text="{x:Bind StepNumber,Mode=OneWay}"
+                               Margin="0,0,0,10"
+                               FontSize="{StaticResource NumberFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
+                </Grid>
+
+                <!-- of -->
+                <TextBlock Grid.Row="0"
+                           Grid.Column="1"
+                           Text="of"
+                           FontSize="{StaticResource OfFontSize}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+
+                <!-- Total Steps -->
+                <Grid Grid.Row="0"
+                      Grid.Column="2">
+                    <Ellipse Fill="Black"
+                             Width="{StaticResource Diameter}"
+                             Height="{StaticResource Diameter}"
+                             VerticalAlignment="Center"
+                             HorizontalAlignment="Center">
+                    </Ellipse>
+                    <TextBlock Text="{x:Bind TotalSteps,Mode=OneTime}"
+                               Margin="0,0,0,10"
+                               FontSize="{StaticResource NumberFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
+                </Grid>
+            </Grid>
+
+            <!-- Instructions -->
+            <TextBlock  Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="40,20,40,20"
+                        TextWrapping="WrapWholeWords"
                         VerticalAlignment="Center"
-                        Content="Start"
-                        Margin="25,25,25,25"
-                        IsEnabled="{x:Bind StartEnabled, Mode=OneWay}"
-                        Click="Start_Click" />
-            </Grid>
+                        Text="{x:Bind CurrentInstruction,Mode=OneWay}"
+                        FontSize="{StaticResource InstructionsFontSize}" />
 
-            <!-- Step 2 -->
-            <Grid Grid.Row="1"
-                  Grid.Column="0">
-                <Ellipse Fill="Black"
-                         Width="{StaticResource Diameter}"
-                         Height="{StaticResource Diameter}"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center">
-                </Ellipse>
-                <TextBlock Text="2"
-                           Margin="0,0,0,10"
-                           FontSize="{StaticResource NumberFontSize}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
-            </Grid>
-            <TextBlock Grid.Row="1"
-                       Grid.Column="1"
-                       TextWrapping="WrapWholeWords"
-                       VerticalAlignment="Center"
-                       Margin="10,10,10,10"
-                       Text="Remove the sensor completely from the water and wait for the sensor to stabilize."
-                       FontSize="{StaticResource InstructionsFontSize}" />
+            <!-- Button -->
+            <Button  Grid.Row="1"
+                     Grid.Column="2"
+                     FontSize="{StaticResource ButtonFontSize}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Content="{x:Bind ButtonText,Mode=OneWay}"
+                     Margin="25,25,25,25"
+                     Click="Button_Click" />
 
-            <!-- Step 3 -->
-            <Grid Grid.Row="2"
-                  Grid.Column="0">
-                <Ellipse Fill="Black"
-                         Width="{StaticResource Diameter}"
-                         Height="{StaticResource Diameter}"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center">
-                </Ellipse>
-                <TextBlock Text="3"
-                           Margin="0,0,0,10"
-                           FontSize="{StaticResource NumberFontSize}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
-            </Grid>
+            <!-- Sensor Reading -->
             <TextBlock Grid.Row="2"
-                       Grid.Column="1"
-                       Margin="10,10,10,10"
-                       TextWrapping="WrapWholeWords"
+                       Grid.Column="3"
+                       HorizontalAlignment="Center"
                        VerticalAlignment="Center"
-                       Text="Submerge the sensor into the water to the maximum allowable level (this would be slightly beyond the maximum reading)."
-                       FontSize="{StaticResource InstructionsFontSize}" />
+                       Text="{x:Bind SensorReadingDisplayValue, Mode=OneWay}"
+                       FontSize="65"
+                       Margin="292,970,288,-764" />
 
-            <!-- Step 4 -->
-            <Grid Grid.Row="3"
-                  Grid.Column="0">
-                <Ellipse Fill="Black"
-                         Width="{StaticResource Diameter}"
-                         Height="{StaticResource Diameter}"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center">
-                </Ellipse>
-                <TextBlock Text="4"
-                           Margin="0,0,0,10"
-						   VerticalAlignment="Center"
-                           FontSize="{StaticResource NumberFontSize}"
-                           HorizontalAlignment="Center" />
-            </Grid>
-            <TextBlock Grid.Row="3"
-                       Grid.Column="1"
-                       Margin="10,10,10,10"
-                       TextWrapping="WrapWholeWords"
-                       VerticalAlignment="Center"
-                       Text="Hold the sensor steady at a 1 inch depth."
-                       FontSize="{StaticResource InstructionsFontSize}" />
-
-            <!-- Step 5 -->
-            <Grid Grid.Row="4"
-                  Grid.Column="0">
-                <Ellipse Fill="Black"
-                         Width="{StaticResource Diameter}"
-                         Height="{StaticResource Diameter}"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center">
-                </Ellipse>
-                <TextBlock Text="5"
-                           Margin="0,0,0,10"
-                           FontSize="{StaticResource NumberFontSize}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
-            </Grid>
-            <TextBlock Grid.Row="4"
-                       Grid.Column="1"
-                       Margin="10,10,10,10"
-                       TextWrapping="WrapWholeWords"
-                       Text="Hold the sensor steady at a 6 inch depth."
-                       FontSize="{StaticResource InstructionsFontSize}" />
-
-            <!-- Step 6 -->
-            <Grid Grid.Row="5"
-                  Grid.Column="0">
-                <Ellipse Fill="Black"
-                         Width="{StaticResource Diameter}"
-                         Height="{StaticResource Diameter}"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center">
-                </Ellipse>
-                <TextBlock Text="6"
-                           Margin="0,0,0,10"
-                           FontSize="{StaticResource NumberFontSize}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
-            </Grid>
-            <TextBlock Grid.Row="5"
-                       Grid.Column="1"
-                       Margin="10,10,10,10"
-                       TextWrapping="WrapWholeWords"
-                       VerticalAlignment="Center"
-                       Text="Hold the sensor steady at a 12 inch depth."
-                       FontSize="{StaticResource InstructionsFontSize}" />
-
-            <!-- Step 7 -->
-            <Grid Grid.Row="6"
-                  Grid.Column="0">
-                <Ellipse Fill="Black"
-                         Width="{StaticResource Diameter}"
-                         Height="{StaticResource Diameter}"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center">
-                </Ellipse>
-                <TextBlock Text="7"
-                           Margin="0,0,0,10"
-                           FontSize="{StaticResource NumberFontSize}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
-            </Grid>
-            <Grid Grid.Row="6"
-                  Grid.Column="1"
+            <!-- Dashboard -->
+            <Grid Grid.Row="2"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="35"
+                  BorderBrush="Black"
+                  BorderThickness="0"
                   Margin="10,10,10,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="5*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
                     <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           TextWrapping="WrapWholeWords"
-                           VerticalAlignment="Center"
-                           Text="Your sensor is now calibrated. Click OK to return to save the results."
-                           FontSize="{StaticResource InstructionsFontSize}" />
 
-                <!-- Start Button -->
-                <Button Grid.Column="1"
-                        FontSize="28"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Content="OK"
-                        Margin="25,25,25,25"
-                        IsEnabled="{x:Bind StartEnabled, Mode=OneWay}"
-                        Click="Ok_Click" />
+                <!-- Calibration Points -->
+                <Border Grid.Column="0"
+                        Grid.Row="0"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="Calibration Points"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+                <Border Grid.Column="0"
+                        Grid.Row="1"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*" />
+                            <RowDefinition Height="1*" />
+                            <RowDefinition Height="1*" />
+                        </Grid.RowDefinitions>
+
+                        <!-- 4 Inches -->
+                        <TextBlock  Grid.Row="0"
+                                    Grid.Column="0"
+                                    Text="4 inches"
+                                    FontSize="24"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="15,5,15,5" />
+                        <TextBlock  Grid.Row="0"
+                                    Grid.Column="1"
+                                    Text="{x:Bind CalibratrionPoint4,Mode=OneWay}"
+                                    FontSize="24"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Margin="15,5,15,5" />
+
+                        <!-- 8 Inches -->
+                        <TextBlock  Grid.Row="1"
+                                    Grid.Column="0"
+                                    Text="8 inches"
+                                    FontSize="24"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="15,5,15,5" />
+                        <TextBlock  Grid.Row="1"
+                                    Grid.Column="1"
+                                    Text="{x:Bind CalibratrionPoint8,Mode=OneWay}"
+                                    FontSize="24"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Margin="15,5,15,5" />
+
+                        <!-- 12 Inches -->
+                        <TextBlock  Grid.Row="2"
+                                    Grid.Column="0"
+                                    Text="12 inches"
+                                    FontSize="24"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="15,5,15,5" />
+                        <TextBlock  Grid.Row="2"
+                                    Grid.Column="1"
+                                    Text="{x:Bind CalibratrionPoint12,Mode=OneWay}"
+                                    FontSize="24"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Margin="15,5,15,5" />
+                    </Grid>
+                </Border>
+
+                <!-- Raw Sensor Reading -->
+                <Border Grid.Column="1"
+                        Grid.Row="0"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="Raw Sensor Reading"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+                <Border Grid.Column="1"
+                        Grid.Row="1"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="3,3,3,3">
+                    <TextBlock Text="{x:Bind RawSensorDisplayValue, Mode=OneWay}"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+
+                <!-- Raw Sensor Reading -->
+                <Border Grid.Column="2"
+                        Grid.Row="0"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="Raw Reference Reading"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+                <Border Grid.Column="2"
+                        Grid.Row="1"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="{x:Bind RawReferenceDisplayValue, Mode=OneWay}"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+
+                <!-- Normalized Sensor Reading -->
+                <Border Grid.Column="3"
+                        Grid.Row="0"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="Normalized Sensor Reading"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+                <Border Grid.Column="3"
+                        Grid.Row="1"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="{x:Bind NormalizedSensorReadingDisplayValue, Mode=OneWay}"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+
+                <!-- Adjusted Sensor Reading -->
+                <Border Grid.Column="4"
+                        Grid.Row="0"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="Adjusted Sensor Reading"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+                <Border Grid.Column="4"
+                        Grid.Row="1"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="{x:Bind AdjustedSensorReadingDisplayValue, Mode=OneWay}"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+
+                <!-- Stability Reading -->
+                <Border Grid.Column="5"
+                        Grid.Row="0"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="Stability"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
+                <Border Grid.Column="5"
+                        Grid.Row="1"
+                        BorderBrush="Black"
+                        BorderThickness="{StaticResource BorderThickness}"
+                        Margin="{StaticResource BorderMargin}">
+                    <TextBlock Text="{x:Bind StabilityDisplayValue, Mode=OneWay}"
+                               FontSize="{StaticResource DashboardFontSize}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="WrapWholeWords" />
+                </Border>
             </Grid>
         </Grid>
     </Grid>
@@ -252,15 +364,6 @@
                           Icon="Cancel"
                           Click="Cancel_Click"
                           IsEnabled="{x:Bind CancelEnabled, Mode=OneWay}">
-            </AppBarButton>
-
-            <AppBarButton x:Uid="okAppBarButton"
-                          x:Name="okLevelAppBarButton"
-                          Label="OK"
-                          Margin="10,0,10,0"
-                          Icon="Accept"
-                          Click="Ok_Click"
-                          IsEnabled="{x:Bind OkEnabled, Mode=OneWay}">
             </AppBarButton>
 
             <CommandBar.SecondaryCommands></CommandBar.SecondaryCommands>

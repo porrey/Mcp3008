@@ -1,19 +1,19 @@
 ﻿// Copyright © 2015 Daniel Porrey
 //
-// This file is part of the MCP3008/Water Sensor solution.
+// This file is part of the MCP3008/Water Level solution.
 // 
-// MCP3008/Water Sensor is free software: you can redistribute it and/or modify
+// MCP3008/Water Level is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
-// MCP3008/Water Sensor is distributed in the hope that it will be useful,
+// MCP3008/Water Level is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with MCP3008/Water Sensor. If not, see http://www.gnu.org/licenses/.
+// along with MCP3008/Water Level. If not, see http://www.gnu.org/licenses/.
 //
 using System;
 using System.Threading.Tasks;
@@ -91,7 +91,7 @@ namespace Porrey.WaterLevel.Views
 			// ***
 			// *** Get the calibration value from application settings
 			// ***
-			_calibration = new NonLinearCalibration(MagicValue.Defaults.MinimumDepth, MagicValue.Defaults.MaximumDepth, this.ApplicationSettings.CalibrationPoints);
+            _calibration = new NonLinearCalibration(MagicValue.Defaults.MinimumDepth, MagicValue.Defaults.MaximumDepth, this.ApplicationSettings.CalibrationPoints);
 
 			// ***
 			// *** Initialize the MCP3008
@@ -124,7 +124,35 @@ namespace Porrey.WaterLevel.Views
 			base.OnNavigatedFrom(e);
 		}
 
-		private async Task UpdateWaterLevelUI(float x)
+		private async Task ReadSensor()
+		{
+			if (_mcp3008 != null)
+			{
+				// ***
+				// *** The reference voltage is measured from the reference resistor
+				// *** on the sensor to help compensate for temperature changes. This
+				// *** value is used to adjust the reading.
+				// ***
+				float xRef = _mcp3008.Read(Mcp3008.Channels.Single1).NormalizedValue;
+
+				// ***
+				// *** Get the normalized sensor reading
+				// ***
+				float x = _mcp3008.Read(Mcp3008.Channels.Single0).NormalizedValue;
+
+				// ***
+				// *** Adjust the sensor reading
+				// ***
+				float adjustedX = x / xRef;
+
+				// ***
+				// *** Update the UI
+				// ***
+				await this.UpdateUI(adjustedX);
+			}
+		}
+
+		private async Task UpdateUI(float x)
 		{
 			if (this.Dispatcher != null)
 			{
@@ -150,15 +178,7 @@ namespace Porrey.WaterLevel.Views
 
 		private async void Timer_Tick(object sender, object e)
 		{
-			if (_mcp3008 != null)
-			{
-				// ***
-				// *** Update the voltage (scale the value so it is a reading
-				// *** between 0 and 3.301v)
-				// ***
-				float value = _mcp3008.Read(Mcp3008.Channels.Single0).NormalizedValue;
-				await this.UpdateWaterLevelUI(value);
-			}
+			await this.ReadSensor();
 		}
 
 		private void calibrateAppBarButton_Click(object sender, RoutedEventArgs e)
