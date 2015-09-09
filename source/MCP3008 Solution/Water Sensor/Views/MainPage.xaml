@@ -20,7 +20,7 @@
             <RowDefinition Height="200" />
         </Grid.RowDefinitions>
 
-        <!-- Water Sensor Header -->
+        <!-- Page Header -->
         <TextBlock Grid.Row="0"
                    Grid.Column="0"
                    Text="Water Sensor"

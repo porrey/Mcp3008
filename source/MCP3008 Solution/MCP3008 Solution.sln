@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Windows.Devices.Sensors.Cal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Windows.Devices.Sensors.SensorStability", "Windows.Devices.Sensors.SensorStability\Windows.Devices.Sensors.SensorStability.csproj", "{1BAD8DC2-BD72-4919-8F0E-F6192671F61C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Current Sensor", "Current Sensor\Current Sensor.csproj", "{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -131,6 +133,26 @@ Global
 		{1BAD8DC2-BD72-4919-8F0E-F6192671F61C}.Release|x64.Build.0 = Release|x64
 		{1BAD8DC2-BD72-4919-8F0E-F6192671F61C}.Release|x86.ActiveCfg = Release|x86
 		{1BAD8DC2-BD72-4919-8F0E-F6192671F61C}.Release|x86.Build.0 = Release|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|ARM.ActiveCfg = Debug|ARM
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|ARM.Build.0 = Debug|ARM
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|ARM.Deploy.0 = Debug|ARM
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|x64.ActiveCfg = Debug|x64
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|x64.Build.0 = Debug|x64
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|x64.Deploy.0 = Debug|x64
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|x86.ActiveCfg = Debug|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|x86.Build.0 = Debug|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Debug|x86.Deploy.0 = Debug|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|Any CPU.ActiveCfg = Release|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|ARM.ActiveCfg = Release|ARM
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|ARM.Build.0 = Release|ARM
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|ARM.Deploy.0 = Release|ARM
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|x64.ActiveCfg = Release|x64
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|x64.Build.0 = Release|x64
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|x64.Deploy.0 = Release|x64
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|x86.ActiveCfg = Release|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|x86.Build.0 = Release|x86
+		{E26F17E2-4AB2-4FF8-894B-C4D322ECEBDC}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
