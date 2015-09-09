@@ -101,6 +101,7 @@
     </Compile>
     <Compile Include="Common\MagicValues.cs" />
     <Compile Include="Common\MyApplicationSettings.cs" />
+    <Compile Include="Models\WizardStep.cs" />
     <Compile Include="Views\CalibratePage.xaml.cs">
       <DependentUpon>CalibratePage.xaml</DependentUpon>
     </Compile>

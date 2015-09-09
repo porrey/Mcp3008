@@ -357,8 +357,16 @@
         <CommandBar Background="Transparent"
                     IsOpen="True">
 
+            <AppBarButton x:Uid="resetAppBarButton"
+                          x:Name="resetAppBarButton"
+                          Label="Reset Calibration"
+                          Margin="10,0,10,0"
+                          Icon="Sync"
+                          Click="ResetCalibration_Click">
+            </AppBarButton>
+
             <AppBarButton x:Uid="cancelAppBarButton"
-                          x:Name="cancelLevelAppBarButton"
+                          x:Name="cancelAppBarButton"
                           Label="Cancel"
                           Margin="10,0,10,0"
                           Icon="Cancel"
