@@ -14,7 +14,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Water Level Header -->
+        <!-- Page Header -->
         <TextBlock Grid.Row="0"
                    Grid.Column="0"
                    Text="Water Level"
