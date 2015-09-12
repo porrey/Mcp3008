@@ -55,7 +55,7 @@ namespace Porrey.Common
 
 		public Task ResetToDefaults()
 		{
-			ApplicationData.Current.LocalSettings.Values.Clear();
+			ApplicationData.Current.RoamingSettings.Values.Clear();
 			return Task.FromResult(0);
 		}
 	}

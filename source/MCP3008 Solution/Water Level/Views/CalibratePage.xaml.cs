@@ -290,7 +290,22 @@ namespace Porrey.WaterLevel.Views
 
 		private void ResetCalibration_Click(object sender, RoutedEventArgs e)
 		{
+			// ***
+			// *** Reset the settings back to the default values
+			// ***
 			this.ApplicationSettings.ResetToDefaults();
+
+			// ***
+			// *** Get the current calibration points
+			// ***
+			_calibrationPoints = this.ApplicationSettings.CalibrationPoints;
+
+			// ***
+			// *** Update the UI
+			// ***
+			this.OnPropertyChanged(nameof(CalibratrionPoint4));
+			this.OnPropertyChanged(nameof(CalibratrionPoint8));
+			this.OnPropertyChanged(nameof(CalibratrionPoint12));
 		}
 		#endregion
 
