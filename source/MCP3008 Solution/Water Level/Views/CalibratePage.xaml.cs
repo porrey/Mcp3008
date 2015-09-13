@@ -75,6 +75,10 @@ namespace Porrey.WaterLevel.Views
 								   ButtonText = "Next",
 								   StepAction = async ()=> { await this.CaptureCalibrationPoint(12, this.SensorReading); this.OnPropertyChanged(nameof(CalibratrionPoint12)); } },
 
+				new WizardStep() { Instruction = "Remove the sensor completely from the water. Wait for the reading to stabilize and then click Next.",
+								   ButtonText = "Next",
+								   StepAction = async ()=> { await this.CaptureCalibrationPoint(0, this.SensorReading); } },
+
 				new WizardStep() { Instruction = "Your sensor is now calibrated. Click Done to return the sensor reading.",
 								   ButtonText = "Done",
 								   StepAction = async ()=> { await this.SaveCalibrationPoints(); this.Return(); } }

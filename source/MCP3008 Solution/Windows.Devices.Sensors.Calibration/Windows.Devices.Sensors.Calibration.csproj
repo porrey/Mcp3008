@@ -118,6 +118,7 @@
     <Compile Include="Interfaces\ICalibratedMeasurement.cs" />
     <Compile Include="Models\Calibration.cs" />
     <Compile Include="Models\LinearCalibration.cs" />
+    <Compile Include="Models\AdjustedNonLinearCalibration.cs" />
     <Compile Include="Models\NonLinearCalibration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Properties\Windows.Devices.Sensors.Calibration.rd.xml" />

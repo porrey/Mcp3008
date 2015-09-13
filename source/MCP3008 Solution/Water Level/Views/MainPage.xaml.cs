@@ -33,7 +33,7 @@ namespace Porrey.WaterLevel.Views
 		private DispatcherTimer _timer = null;
 		private Mcp3008 _mcp3008 = null;
 		private MyApplicationSettings _applicationSettings = null;
-		private NonLinearCalibration _calibration = null;
+		private AdjustedNonLinearCalibration _calibration = null;
 
 		public MainPage()
 		{
@@ -91,7 +91,7 @@ namespace Porrey.WaterLevel.Views
 			// ***
 			// *** Get the calibration value from application settings
 			// ***
-            _calibration = new NonLinearCalibration(MagicValue.Defaults.MinimumDepth, MagicValue.Defaults.MaximumDepth, this.ApplicationSettings.CalibrationPoints);
+			_calibration = new AdjustedNonLinearCalibration(MagicValue.Defaults.MinimumDepth, MagicValue.Defaults.MaximumDepth, this.ApplicationSettings.CalibrationPoints);
 
 			// ***
 			// *** Initialize the MCP3008
@@ -143,7 +143,7 @@ namespace Porrey.WaterLevel.Views
 				// ***
 				// *** Adjust the sensor reading
 				// ***
-				float adjustedX = x / xRef;
+				float adjustedX = (x / xRef).Maximum(1f);
 
 				// ***
 				// *** Update the UI
@@ -161,7 +161,7 @@ namespace Porrey.WaterLevel.Views
 					// ***
 					// *** Get the depth in inches
 					// ***
-					float y = _calibration.AdjustedReading(x);
+					float y = _calibration.AdjustedReading(x).Minimum(0f).Maximum(MagicValue.Defaults.MaximumDepth);
 
 					// ***
 					// *** Convert to a string for display
